@@ -98,53 +98,6 @@ with st.sidebar:
     )
     st.markdown("---")
 
-    # ── File upload ──────────────────────────────────────────────────────
-    st.subheader("📂 Data Source")
-    uploaded = st.file_uploader(
-        "Upload VOC Data (CSV or Excel)",
-        type=["csv", "xlsx"],
-        help="Upload a VOC performance file — CSV or SODA Excel (.xlsx) format accepted.",
-    )
-
-    if uploaded is not None:
-        file_bytes = uploaded.read()
-        try:
-            if uploaded.name.lower().endswith(".xlsx"):
-                result = parse_voc_excel(file_bytes)
-            else:
-                csv_text = file_bytes.decode("utf-8", errors="replace")
-                result = parse_voc_csv(csv_text)
-            st.session_state["raw_df"] = result.df
-            st.session_state["parse_warnings"] = result.warnings
-            # Reset all filters when a new file is loaded
-            st.session_state["filter_vendors"] = []
-            st.session_state["filter_year"] = None
-            st.session_state["filter_week_start"] = None
-            st.session_state["filter_week_end"] = None
-
-            # Parse summary
-            st.success(
-                f"✅ Loaded **{result.total_ingested:,}** records"
-                + (
-                    f" | ⚠️ {result.total_skipped} row(s) skipped"
-                    if result.total_skipped > 0
-                    else ""
-                )
-            )
-            if result.week_id_range:
-                st.caption(
-                    f"Week range: {result.week_id_range[0]} – {result.week_id_range[1]}"
-                )
-            if result.warnings:
-                with st.expander(f"⚠️ {len(result.warnings)} parse warning(s)"):
-                    for w in result.warnings:
-                        st.text(w)
-
-        except ValueError as exc:
-            st.error(f"❌ Failed to load file: {exc}")
-            st.session_state["raw_df"] = None
-            st.session_state["parse_warnings"] = []
-
     raw_df = st.session_state["raw_df"]
 
     # ── Filters (only shown when data is loaded) ──────────────────────────
@@ -229,7 +182,7 @@ with st.sidebar:
             st.rerun()
 
     else:
-        st.info("Upload a CSV file above to enable filters.")
+        st.info("Data will load automatically.")
 
     st.markdown("---")
     st.caption("VOC Command Center · NA Direct Fulfillment")
