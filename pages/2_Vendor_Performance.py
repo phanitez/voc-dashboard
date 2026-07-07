@@ -29,6 +29,8 @@ st.set_page_config(
 
 # ── Apply dark theme CSS ──
 inject_dark_css()
+from voc.ui import _ensure_data_loaded
+_ensure_data_loaded()
 # ── Theme palette ─────────────────────────────────────────────────────────
 _ORANGE = "#F6A623"
 _NAVY   = "#0A1628"

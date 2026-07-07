@@ -301,3 +301,41 @@ def inject_dark_css() -> None:
     """Call once per page — injects the full dark theme CSS."""
     import streamlit as st
     st.markdown(DARK_CSS, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Auto-load helper — call at the top of every page
+# ---------------------------------------------------------------------------
+def _ensure_data_loaded() -> None:
+    """
+    If raw_df is not yet in session_state, try to load VOC_data.xlsx
+    from the project root. Silent on failure — page guards handle the empty state.
+    """
+    import streamlit as st
+    import os
+
+    if st.session_state.get("raw_df") is not None:
+        return  # already loaded
+
+    # Initialise required session keys if missing
+    defaults = {
+        "raw_df": None, "parse_warnings": [],
+        "filter_vendors": [], "filter_year": None,
+        "filter_week_start": None, "filter_week_end": None,
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+    # Attempt auto-load from bundled data file
+    try:
+        from voc.parser import parse_voc_excel
+        data_path = os.path.join(os.path.dirname(__file__), "..", "VOC_data.xlsx")
+        data_path = os.path.abspath(data_path)
+        if os.path.exists(data_path):
+            with open(data_path, "rb") as _f:
+                result = parse_voc_excel(_f.read())
+            st.session_state["raw_df"] = result.df
+            st.session_state["parse_warnings"] = result.warnings
+    except Exception:
+        pass  # silent — page will show "no data" prompt
