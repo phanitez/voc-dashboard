@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Backups & temp data
+VOC_data_backup_*.xlsx
+VOC 2026 Data.csv
+
+# Kiro spec files
+.kiro/
+voc-command-center-spec.md/
+
+# Tests (optional — remove this line if you want tests in repo)
+# tests/
