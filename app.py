@@ -100,6 +100,15 @@ with st.sidebar:
 
     raw_df = st.session_state["raw_df"]
 
+    # ── Reload Data button ─────────────────────────────────────────────────
+    if st.button("🔄 Reload Data", use_container_width=True,
+                 help="Pick up newly added weeks from VOC_data.xlsx"):
+        st.session_state["raw_df"] = None
+        st.session_state["parse_warnings"] = []
+        st.session_state["filter_week_start"] = None
+        st.session_state["filter_week_end"] = None
+        st.rerun()
+
     # ── Filters (only shown when data is loaded) ──────────────────────────
     st.markdown("---")
     st.subheader("🔍 Filters")
@@ -141,37 +150,37 @@ with st.sidebar:
             else int(selected_year_label)
         )
 
-        # Week range inputs
+        # Week range — dropdowns so new weeks always appear without a session reload
         all_weeks = sorted(raw_df["week_id"].unique().tolist())
-        min_week = int(all_weeks[0])
-        max_week = int(all_weeks[-1])
+        week_label_map = {w: f"WK-{str(w)[-2:]} ({w})" for w in all_weeks}
+
+        cur_start = st.session_state["filter_week_start"] or all_weeks[0]
+        cur_end   = st.session_state["filter_week_end"]   or all_weeks[-1]
+        if cur_start not in all_weeks: cur_start = all_weeks[0]
+        if cur_end   not in all_weeks: cur_end   = all_weeks[-1]
 
         col_start, col_end = st.columns(2)
         with col_start:
-            week_start_input = st.number_input(
+            sel_start = st.selectbox(
                 "Week start",
-                min_value=min_week,
-                max_value=max_week,
-                value=st.session_state["filter_week_start"] or min_week,
-                step=1,
-                format="%d",
+                options=all_weeks,
+                index=all_weeks.index(cur_start),
+                format_func=lambda w: week_label_map[w],
             )
         with col_end:
-            week_end_input = st.number_input(
+            sel_end = st.selectbox(
                 "Week end",
-                min_value=min_week,
-                max_value=max_week,
-                value=st.session_state["filter_week_end"] or max_week,
-                step=1,
-                format="%d",
+                options=all_weeks,
+                index=all_weeks.index(cur_end),
+                format_func=lambda w: week_label_map[w],
             )
 
-        range_error = validate_week_range(int(week_start_input), int(week_end_input))
+        range_error = validate_week_range(int(sel_start), int(sel_end))
         if range_error:
             st.warning(f"⚠️ {range_error}")
         else:
-            st.session_state["filter_week_start"] = int(week_start_input)
-            st.session_state["filter_week_end"] = int(week_end_input)
+            st.session_state["filter_week_start"] = int(sel_start)
+            st.session_state["filter_week_end"]   = int(sel_end)
 
         # Clear all filters
         if st.button("🗑️ Clear All Filters", use_container_width=True):
