@@ -63,8 +63,8 @@ if st.session_state["raw_df"] is None and os.path.exists(_AUTO_DATA_PATH):
             _result = parse_voc_excel(_f.read())
         st.session_state["raw_df"] = _result.df
         st.session_state["parse_warnings"] = _result.warnings
-    except Exception:
-        pass  # Silently skip — user can upload manually
+    except Exception as _e:
+        st.error(f"Failed to load VOC_data.xlsx: {_e}")
 
 
 
@@ -114,6 +114,7 @@ with st.sidebar:
     st.subheader("🔍 Filters")
 
     if raw_df is not None and not raw_df.empty:
+      try:
         # Vendor multi-select
         all_vendors = sorted(raw_df["vendor_code"].unique().tolist())
         vendor_labels = {
@@ -189,6 +190,8 @@ with st.sidebar:
             st.session_state["filter_week_start"] = None
             st.session_state["filter_week_end"] = None
             st.rerun()
+      except Exception as _sf:
+        st.error(f"Sidebar filter error: {_sf}")
 
     else:
         st.info("Data will load automatically.")
